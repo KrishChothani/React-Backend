@@ -1,4 +1,4 @@
-import {v2 as cloucloudinary} from 'cloudinary'; 
+import {v2 as cloudinary} from 'cloudinary'; 
 import fs from 'fs';
 
 cloudinary.config({ 
@@ -12,7 +12,7 @@ const uploadOnCloudinary = async (localFilePath) =>{
     try {
         if(!localFilePath) return null;
         // upload the file on the cloudinary
-        const response = await cloucloudinary.uploader.upload(localFilePath ,  {
+        const response = await cloudinary.uploader.upload(localFilePath ,  {
             resource_type: 'auto',
         });
         console.log('File is successfully uploaded' , response.url);
@@ -20,7 +20,6 @@ const uploadOnCloudinary = async (localFilePath) =>{
     } catch (er) {
         fs.unlinkSync(localFilePath); // remove locally save temporary file as the upload failed
         return null;
-        
     }
 }
 

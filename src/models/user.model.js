@@ -24,8 +24,8 @@ const userSchema = new Schema ({
         trim: true,
         index: true
     },
-    avatr: {
-        type: string, // cloudinary url
+    avatar: {
+        type: String, // cloudinary url
         required: true,
     },
     coverImage: {
@@ -48,7 +48,7 @@ const userSchema = new Schema ({
 
 userSchema.pre("Save" , async function (next){
     if(!this.isMOdified("password")) return next();
-    this.password =  bcrypt.hash(this.password, 10);
+    this.password =  await bcrypt.hash(this.password, 10);
     next();
 })
 
@@ -81,7 +81,4 @@ userSchema.methods.generateREfreshToken = async function(){
         }
     )
 }
-
-
-
 export const User = mongoose.model("User", userSchema)
