@@ -36,12 +36,12 @@ const getAllVideos = asyncHandler(async (req, res) => {
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description } = req.body;
 
-    if (!title || !description) {
+    if (!title && !description) {
         throw new ApiError(400, "Title and description are required");
     }
 
-    const videoLocalPath = req.files?.videoFile[0].path;
-    const thumbnailLocalPath = req.files?.thumbnail[0].path;
+    const videoLocalPath = req.files?.videoFile[0]?.path;
+    const thumbnailLocalPath = req.files?.thumbnail[0]?.path;
 
     if (!videoLocalPath) {
         throw new ApiError(400, "Video file is required");
@@ -80,28 +80,82 @@ const publishAVideo = asyncHandler(async (req, res) => {
 });
 
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    console.log(videoId);
+    const { videoId } = req.params;
+    // console.log(videoId);
 
-    if(!videoId?.trim()) 
-    {
-        throw new ApiError(400,[],"Videoid is missing")
-    }
-    
-      const video = await Video.findById(videoId);
-    if (!video) {
+    const video = await Video.aggregate([
+        {
+            $addFields:{
+                ownerVideo:await Video.find({ owner: videoId })
+            }
+        },
+        {
+            $project: {
+                videoFile: 1,
+                title: 1,
+                thumbnail: 1,
+                description: 1,
+                duration: 1,
+                views: 1,
+                published: 1,
+                owner: 1,
+                ownerVideo:1,
+            }
+        }
+    ]);
+
+    // console.log(video);
+    if (!video?.length) {
         throw new ApiError(404, "Video not found");
     }
 
     return res.status(200).json(
-        new Apiresponse(200, video, "Video fetched successfully")
+        new Apiresponse(200, video[0], "Video fetched successfully")
     );
+});
 
-})
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    const {title , thumbnail, description} = req.body
+
+    console.log('Request Params:', req.params);
+    console.log('Request Body:', req.body);
+
+    if(!videoId) {
+        throw new ApiError(404, "VideoId not found");
+    }
+    if(!title && !thumbnail && !description){
+        throw new ApiError(404, "title ,thumbnail, description are required")
+    }
+
+    const thumbNail = await uploadOnCloudinary(thumbnail);
+
+    if(!thumbNail.url){
+        throw new ApiError(400, "thumanail url does not exist")
+    }
+
+    const video = await Video.findByIdAndUpdate(
+        req.video?._id,
+        {
+            $set:{
+                title,
+                thumbnail: thumbNail.url,
+                description
+            }
+        },
+        {new: true}
+    )
+
+
+    
+
+    return res.status(200).json(
+        new Apiresponse(200,video , "update video deatails successfully")
+    )
     //TODO: update video details like title, description, thumbnail
+
+
 
 })
 

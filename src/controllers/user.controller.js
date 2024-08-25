@@ -313,6 +313,7 @@ const updateUserCoverImage = asyncHandler( async(req,res) =>{
 
 const getUserChannelProfile = asyncHandler( async(req, res) => {
     const {userName} =req.params
+    // console.log(userName);
 
     if(!userName?.trim()){
         throw new ApiError(400, "Username is missing");
@@ -371,7 +372,7 @@ const getUserChannelProfile = asyncHandler( async(req, res) => {
         }
     ])
 
-    console.log(channel);
+    // console.log(channel);
 
     if(!channel?.length){
         throw new ApiError(404, "Channel does not exists"); 
@@ -384,7 +385,7 @@ const getWatchhistory = asyncHandler( async(req, res) => {
     const user = await User.aggregate([
         {
             $match:{
-                _id: new mongoose.Schema.Types.ObjectId(req.user._id),
+                _id: new mongoose.Types.ObjectId(req.user._id),
             }
         },
         {
