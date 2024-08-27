@@ -5,20 +5,43 @@ import {Apiresponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
-    //TODO: get all comments for a video
-    const {videoId} = req.params
-    const {page = 1, limit = 10} = req.query
+    const { videoId } = req.params;
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortType = 'desc' } = req.query;
 
-    if(!videoId) {
-        throw new ApiError(404, "Invalid videoId")
+    if (!videoId) {
+        throw new ApiError(404, "Invalid videoId");
     }
 
-    const comments = await Comment.find({ video: videoId })
+    const sortOptions = {};
+    sortOptions[sortBy] = sortType === 'asc' ? 1 : -1;
+
+    const aggregateQuery = Comment.aggregate([
+        {
+            $match: { video: new mongoose.Types.ObjectId(videoId) }
+        },
+        {
+            $sort: sortOptions
+        }
+    ]);
+
+    const options = {
+        page: parseInt(page),
+        limit: parseInt(limit)
+    };
+
+    const result = await Comment.aggregatePaginate(aggregateQuery, options);
 
     return res.status(200).json(
-        new Apiresponse(201, comments, "Comments fetch successfully")
-    )
-})
+        new Apiresponse(200, {
+            comments: result.docs,
+            totalDocs: result.totalDocs,
+            totalPages: result.totalPages,
+            currentPage: result.page,
+        }, "Comments fetched successfully")
+    );
+});
+
+
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
