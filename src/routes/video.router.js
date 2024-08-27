@@ -19,7 +19,7 @@ router.route("/").post( upload.fields([
                     publishAVideo
                 )
 
-router.route("/get-all-video").get(getAllVideos)
+router.route("/").get(getAllVideos)
 router.route("/v/:videoId").get(getVideoById)
 router.route("/uv/:videoId").patch(upload.single("thumbnail"),updateVideo);
 router.route("/uv/:videoId").delete(deleteVideo)

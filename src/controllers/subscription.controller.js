@@ -29,7 +29,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         await existingSubscription.deleteOne();
 
         return res.status(200).json(
-            new Apiresponse(201, existingSubscription, "Unsubscribed Successfully" )
+            new Apiresponse(201, 0, "Unsubscribed Successfully" )
         )
     }
     else{
@@ -39,7 +39,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         })
 
         return res.status(200).json(
-            new Apiresponse(201, existingSubscription, "Subscribed Successfully" )
+            new Apiresponse(201, 1, "Subscribed Successfully" )
         )
     }
    
@@ -53,31 +53,9 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Invalid subscriptionId");
     }
 
-//    const userSubscribers = await Subscription.find({
-//         channel: new mongoose.Types.ObjectId(subscriptionId)
-//     })
-        const userSubscribers = await Subscription.aggregate([
-            {
-                $match:{
-                    channel: new mongoose.Types.ObjectId(subscriptionId)
-                }
-            },
-            {
-                $lookup:{
-                    from:"users",
-                    localField:"subscriber",
-                    foreignField:"_id",
-                    as:"subscriberdetails"
-                }
-            },
-            {
-                $project:{
-                    _id:1,
-                    channel:1,
-                    subscriberdetails:1
-                }
-            }
-        ])
+    const userSubscribers = await Subscription.find({
+        channel : subscriptionId
+    }).populate("subscriber")
 
     return res.status(200).json(
          new Apiresponse(200, userSubscribers, "users's subscribers fetch successfully")
@@ -86,39 +64,15 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    const { channelId } = req.params
+    const { channelId }= req.params
+    console.log(channelId)
 
     if(!channelId) {
         throw new ApiError(404, "Invalid channelId");
     }
-    // const subscribedChannel = await Subscription.find({
-    //     subscriber: new mongoose.Types.ObjectId(channelId)
-    // })
-    const subscribedChannel = await Subscription.aggregate([
-        {
-            $match: {
-                subscriber: new mongoose.Types.ObjectId(channelId)
-            }
-        },
-        {
-            $lookup: {
-                from: "users",
-                localField: "channel",
-                foreignField: "_id",
-                as:"channelDetails"
-            }
-        },
-         {
-            $unwind: "$channelDetails" // Flatten the array of channel details
-        },
-        {
-            $project:{
-                _id : 1,
-                subscriber:1,
-                channelDetails:1
-            }
-        }
-    ])
+    const subscribedChannel = await Subscription.find({
+        subscriber: channelId
+    }).populate("channel")
 
     if(!subscribedChannel) {
         throw new ApiError(404, "Invalid subscribedChannel");
