@@ -22,11 +22,13 @@ import tweetRouter from "./routes/tweet.router.js";
 import subscriptionRouter from "./routes/subscription.router.js"
 import playlistRouter from "./routes/playlist.router.js"
 import likeRouter from "./routes/like.router.js"
+import healcheckrouter from "./routes/healcheck.router.js"
 app.use("/api/v1/users", userRouter);    
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/tweets", tweetRouter);
 app.use("/api/v1/subscriptions" , subscriptionRouter);
-app.use("/api/v1/playlist", playlistRouter)
-app.use("/apiv1/users", likeRouter);
+app.use("/api/v1/playlists", playlistRouter);
+app.use("/api/v1/likes", likeRouter);
+app.use("/api/v1/healcheck", healcheckrouter);
  
 export { app }
